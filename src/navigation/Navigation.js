@@ -6,6 +6,7 @@ import { NAVIGATORS } from "../utils/screens";
 
 import LandingScreen from "../screens/LandingScreen";
 import BottomTabNavigation from "./BottomTabNavigation";
+import AuthNavigation from "./AuthNavigation";
 
 const Stack = createStackNavigator();
 
@@ -22,9 +23,14 @@ const Navigation = () => (
 				options={NAVIGATION_OPTIONS}
 			/>
 			<Stack.Screen
+				name={NAVIGATORS.AUTH}
+				component={AuthNavigation}
+				options={{ headerShown: false }}
+			/>
+			<Stack.Screen
 				name={NAVIGATORS.BOTTOM_TAB}
 				component={BottomTabNavigation}
-				options={NAVIGATION_OPTIONS}
+				options={{ headerShown: false }}
 			/>
 		</Stack.Navigator>
 	</NavigationContainer>

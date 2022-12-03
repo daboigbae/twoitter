@@ -3,15 +3,18 @@ import { createSlice } from "@reduxjs/toolkit";
 export const UserSlice = createSlice({
 	name: "UserSlice",
 	initialState: {
-		//TODO: add initial state
+		firebaseUser: {}
 	},
 	reducers: {
 		//TODO: add reducers
-		setUser: (state, action) => {
-			state = action.payload;
+		setFirebaseUser: (state, action) => {
+			state.firebaseUser = action.payload;
+		},
+		clearFirebaseUser: (state) => {
+			state.firebaseUser = {};
 		}
 	}
 });
 
-export const { setUser } = UserSlice.actions;
+export const { setFirebaseUser, clearFirebaseUser } = UserSlice.actions;
 export default UserSlice.reducer;

@@ -4,14 +4,19 @@ import LottieView from "lottie-react-native";
 import PropTypes from "prop-types";
 
 import { NAVIGATORS } from "../utils/screens";
+import { useSelector } from "react-redux";
 
 const LandingAnimation = require("../assets/lottie/landingAnimation.json");
 
 const LandingScreen = ({ navigation }) => {
+	const firebaseUser = useSelector(({ UserSlice }) => UserSlice.firebaseUser);
+
 	useEffect(() => {
-		setTimeout(() => {
+		if (JSON.stringify(firebaseUser) !== "{}") {
 			navigation.replace(NAVIGATORS.BOTTOM_TAB);
-		}, 700); // Mocking data loading at landing screen
+		} else {
+			navigation.replace(NAVIGATORS.AUTH);
+		}
 	}, []);
 
 	return (
