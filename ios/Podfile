@@ -10,19 +10,21 @@ production = ENV["PRODUCTION"] == "1"
 
 target 'twoitter' do
 
-	pre_install do |installer|
-		Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
-		
-		installer.pod_targets.each do |pod|
-			if pod.name.eql?('RNPermissions') || pod.name.start_with?('Permission-')
-			def pod.build_type;
-				# Uncomment the line corresponding to your CocoaPods version
-				Pod::BuildType.static_library # >= 1.9
-				# Pod::Target::BuildType.static_library # < 1.9
-			end
-			end
+pre_install do |installer|
+	Pod::Installer::Xcode::TargetValidator.send(:define_method, :verify_no_static_framework_transitive_dependencies) {}
+	
+	installer.pod_targets.each do |pod|
+		if pod.name.eql?('RNPermissions') || pod.name.start_with?('Permission-')
+		def pod.build_type;
+			# Uncomment the line corresponding to your CocoaPods version
+			Pod::BuildType.static_library # >= 1.9
+			# Pod::Target::BuildType.static_library # < 1.9
 		end
 		end
+	end
+	end
+
+	
 
   config = use_native_modules!
 
@@ -48,9 +50,46 @@ target 'twoitter' do
   end
 
   post_install do |installer|
-    react_native_post_install(installer)
-    __apply_Xcode_12_5_M1_post_install_workaround(installer)
+	puts 'Setting appropriate code signing identities'
+  codesign_rn_pods = true
+  targetsToFix = ["EXConstants-EXConstants", "EXUpdates-EXUpdates", "React-Core-AccessibilityResources", "expo-dev-launcher-EXDevLauncher", "expo-dev-menu-EXDevMenu"]
+
+  # Get main project development team id, or fetch from env var: dev_team = ENV['XCODE_DEVELOPMENT_TEAM']
+  dev_team = ""
+  project = installer.aggregate_targets[0].user_project
+  project.targets.each do |target|
+    target.build_configurations.each do |config|
+      if dev_team.empty? and !config.build_settings['DEVELOPMENT_TEAM'].nil?
+        dev_team = config.build_settings['DEVELOPMENT_TEAM']
+      end
+    end
   end
 
-  
+  installer.pods_project.targets.each do |target|
+    target_is_resource_bundle = target.respond_to?(:product_type) && target.product_type == 'com.apple.product-type.bundle'
+    target.build_configurations.each do |config|
+      # Bitcode is not needed for now, XCode 14.1.0+
+      # config.build_settings['ENABLE_BITCODE'] = 'YES'
+
+      if targetsToFix.include?(target.name) || target_is_resource_bundle
+        puts "Set development team for target #{target.name}, isBundle: #{target_is_resource_bundle}, dev_team: #{dev_team}"
+        config.build_settings['DEVELOPMENT_TEAM'] = dev_team
+        if codesign_rn_pods
+          if config.name.include?('Release')
+            puts " .. Setting codesign identity to distribution for target #{target.name}"
+            config.build_settings["CODE_SIGN_IDENTITY"] = "Apple Distribution";
+            config.build_settings["CODE_SIGN_STYLE"] = "Manual";
+          end
+        else
+          puts " .. Removing code signing for target #{target.name}"
+          config.build_settings['CODE_SIGNING_ALLOWED'] = 'NO'
+          config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+          config.build_settings['CODE_SIGNING_IDENTITY'] = '-'
+          config.build_settings['EXPANDED_CODE_SIGN_IDENTITY'] = '-'
+        end
+      end
+    end
+  end
+  end
+
 end
