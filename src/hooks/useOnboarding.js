@@ -20,8 +20,15 @@ export default function useOnboarding() {
 			setIsLoading(false);
 		}
 	};
+
+	const hasUserCompletedOnboarding = async (uid) => {
+		const user = await firestore().collection("Users").doc(uid).get();
+		return user; 
+	};
+
 	return {
 		isLoading,
-		createUserProfile
+		createUserProfile, 
+		hasUserCompletedOnboarding
 	};
 }
