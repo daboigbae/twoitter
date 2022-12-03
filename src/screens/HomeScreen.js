@@ -7,10 +7,14 @@ import useLocalize from "../hooks/useLocalize";
 import { TRANSLATIONS } from "../utils/translations/translations";
 import { useLayoutEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
+import useOnboarding from "../hooks/useOnboarding";
+
+
 
 const HomeScreen = () => {
 	const navigation = useNavigation();
 	const { translate } = useLocalize();
+	const { isLoading, createUserProfile } = useOnboarding();
 
 	// TODO: This can be removed or changed according to project needs
 	useLayoutEffect(() => {
@@ -24,7 +28,9 @@ const HomeScreen = () => {
 			<Button
 				buttonColor="bg-blue-600"
 				textColor="text-white"
-				onPress={() => {}}
+				onPress={async () => {
+					await createUserProfile(); 
+				}}
 				label={translate(TRANSLATIONS.CHANGE_BUTTON)}
 			/>
 			<Text className="text-2xl font-bold text-center mt-8">Todays Date</Text>
